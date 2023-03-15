@@ -34,6 +34,7 @@ def get_full_schedule(schedule, team_abrv):
     ver2.head()
 
     full_schedule = pd.concat([ver1,ver2],ignore_index=True)
+    full_schedule['Date'] = pd.to_datetime(full_schedule['Date'])
 
     return full_schedule
 
@@ -51,13 +52,27 @@ def get_week_schedule(full_schedule, week_num):
     week_mask = full_schedule[mask]
 
     week_table = week_mask.pivot_table(index = 'Team1', columns= 'Date', values = 'Team2', aggfunc='first')
-    week_table = week_table.reset_index()
 
     return week_table
 
-def get_schedule_strength(week_schedule, team):
-    
+def get_schedule_strength(week_table, team):
+    week_table['game_count']=week_table.count(axis = 1)
+    week_table = week_table.reset_index()
+    week_table['opponent'] = 0
 
+    team_all = team[team['situation'] == 'all']
+    team_all['xGoalsPercentage'] = team_all['xGoalsFor']/(team_all['xGoalsAgainst'] + team_all['xGoalsFor'])
+    team_all = team_all[['team','xGoalsPercentage']]
+
+    for i in range(1, 8):
+        week_table['opp'] = week_table[week_table.columns[i]].str.split(' ').str[1]
+        week_table = week_table.merge(team_all, left_on= 'opp', right_on= 'team', how = 'left')
+        week_table['xGoalsPercentage'] = week_table['xGoalsPercentage'].fillna(1)
+        week_table['xGoalsPercentage'] = 1 - week_table['xGoalsPercentage']
+        week_table['opponent'] = week_table['opponent'] + week_table['xGoalsPercentage'] 
+        week_table = week_table.drop(columns=['team','xGoalsPercentage','opp'])
+    
+    return week_table
 
 
 if __name__ == "__main__":
@@ -71,4 +86,8 @@ if __name__ == "__main__":
 
     full_schedule = get_full_schedule(schedule, team_abrv)
 
-    week_schedule = get_week_schedule(full_schedule, 23)
+    week_schedule = get_week_schedule(full_schedule, week_num)
+
+    week_strength_schedule = get_schedule_strength(week_schedule, team)
+
+    print(week_strength_schedule.sort_values('opponent',ascending=False))
