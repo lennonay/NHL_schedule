@@ -1,3 +1,3 @@
 # NHL_schedule
 
-![]('report/week_strength_schedule.html')
+![hi]('report/week_strength_schedule.html')
