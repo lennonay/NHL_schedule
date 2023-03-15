@@ -92,6 +92,9 @@ if __name__ == "__main__":
 
     week_strength_schedule= week_strength_schedule.sort_values('Opponent_Score',ascending=False)
 
-    week_strength_schedule.style.background_gradient(axis = None, subset = ['Opponent_Score']).to_html('week_strength_schedule.html')
+    week_strength_schedule = week_strength_schedule.fillna('').reset_index().drop(columns= 'index').rename(columns = {'Team1':'Team'})
+    #style.background_gradient(axis = None, subset = ['Opponent_Score'])
+
+    #week_strength_schedule.style.background_gradient(axis = None, subset = ['Opponent_Score']).to_html('report/week_strength_schedule.html')
 
     print(week_strength_schedule)
