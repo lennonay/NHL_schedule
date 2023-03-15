@@ -76,9 +76,9 @@ def get_schedule_strength(week_table, team):
 
 
 if __name__ == "__main__":
-    schedule = pd.read_csv('2022_2023_NHL_Schedule.csv', names=['Date','Time','Home','Away'])
+    schedule = pd.read_csv('data/2022_2023_NHL_Schedule.csv', names=['Date','Time','Home','Away'])
     schedule = schedule[['Date', 'Home','Away']]
-    team = pd.read_csv('teams.csv')
+    team = pd.read_csv('data/teams.csv')
     
     week_num = 23
 
