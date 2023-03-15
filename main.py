@@ -34,12 +34,12 @@ def get_full_schedule(schedule, team_abrv):
     ver2.head()
 
     full_schedule = pd.concat([ver1,ver2],ignore_index=True)
-    full_schedule['Date'] = pd.to_datetime(full_schedule['Date'])
+    full_schedule['Date'] = pd.to_datetime(full_schedule['Date']).dt.date
 
     return full_schedule
 
 def get_week_schedule(full_schedule, week_num):
-    date_start = pd.date_range(full_schedule['Date'].min().date(), full_schedule['Date'].max().date(), freq='W-MON')
+    date_start = pd.date_range(full_schedule['Date'].min(), full_schedule['Date'].max(), freq='W-MON')
     
     if (week_num > len(date_start) or week_num < 1):
         sys.exit("Week number should be in range 1 and {}".format(len(date_start)))  
@@ -58,7 +58,7 @@ def get_week_schedule(full_schedule, week_num):
 def get_schedule_strength(week_table, team):
     week_table['game_count']=week_table.count(axis = 1)
     week_table = week_table.reset_index()
-    week_table['opponent'] = 0
+    week_table['Opponent_Score'] = 0
 
     team_all = team[team['situation'] == 'all']
     team_all['xGoalsPercentage'] = team_all['xGoalsFor']/(team_all['xGoalsAgainst'] + team_all['xGoalsFor'])
@@ -69,7 +69,7 @@ def get_schedule_strength(week_table, team):
         week_table = week_table.merge(team_all, left_on= 'opp', right_on= 'team', how = 'left')
         week_table['xGoalsPercentage'] = week_table['xGoalsPercentage'].fillna(1)
         week_table['xGoalsPercentage'] = 1 - week_table['xGoalsPercentage']
-        week_table['opponent'] = week_table['opponent'] + week_table['xGoalsPercentage'] 
+        week_table['Opponent_Score'] = week_table['Opponent_Score'] + week_table['xGoalsPercentage'] 
         week_table = week_table.drop(columns=['team','xGoalsPercentage','opp'])
     
     return week_table
@@ -90,4 +90,8 @@ if __name__ == "__main__":
 
     week_strength_schedule = get_schedule_strength(week_schedule, team)
 
-    print(week_strength_schedule.sort_values('opponent',ascending=False))
+    week_strength_schedule= week_strength_schedule.sort_values('Opponent_Score',ascending=False)
+
+    week_strength_schedule.style.background_gradient(axis = None, subset = ['Opponent_Score']).to_html('week_strength_schedule.html')
+
+    print(week_strength_schedule)
